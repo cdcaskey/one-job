@@ -1,14 +1,12 @@
 import {
   ActionIcon,
   AppShell,
-  Badge,
   Group,
   NavLink,
   Title,
   useMantineColorScheme,
 } from '@mantine/core';
 import { Route, Routes, NavLink as RouterNavLink } from 'react-router';
-import { useHealth } from './hooks/useHealth.js';
 import { DrawPage } from './features/draw/DrawPage.js';
 import { ListPage } from './features/list/ListPage.js';
 
@@ -25,15 +23,6 @@ function ColorSchemeToggle() {
     >
       {isDark ? '☀️' : '🌙'}
     </ActionIcon>
-  );
-}
-
-function HealthBadge() {
-  const { data: health } = useHealth();
-  return (
-    <Badge color={health?.status === 'ok' ? 'green' : 'gray'}>
-      {health ? `api ${health.status} / db ${health.db}` : 'connecting…'}
-    </Badge>
   );
 }
 
@@ -61,7 +50,6 @@ export function App() {
             />
           </Group>
           <Group gap="sm">
-            <HealthBadge />
             <ColorSchemeToggle />
           </Group>
         </Group>
