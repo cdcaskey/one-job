@@ -4,6 +4,7 @@ import {
   Group,
   NavLink,
   Title,
+  useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
 import { Route, Routes, NavLink as RouterNavLink } from 'react-router';
@@ -11,8 +12,9 @@ import { DrawPage } from './features/draw/DrawPage.js';
 import { ListPage } from './features/list/ListPage.js';
 
 function ColorSchemeToggle() {
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
+  const isDark = computedColorScheme === 'dark';
 
   return (
     <ActionIcon
