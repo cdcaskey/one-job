@@ -17,7 +17,7 @@ export function App() {
     <AppShell header={{ height: 56 }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
-          <Title order={4}>App Name</Title>
+          <Title order={4}>One Job</Title>
           <Badge color={health?.status === 'ok' ? 'green' : 'gray'}>
             {health ? `api ${health.status} / db ${health.db}` : 'connecting…'}
           </Badge>

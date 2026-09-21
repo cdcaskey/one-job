@@ -29,6 +29,13 @@ export default defineConfig({
           include: ['server/**/*.test.ts'],
         },
       },
+      {
+        test: {
+          name: 'shared',
+          environment: 'node',
+          include: ['shared/**/*.test.ts'],
+        },
+      },
     ],
   },
 });
