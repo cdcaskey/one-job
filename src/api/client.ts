@@ -27,7 +27,14 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    // Only set Content-Type when there's actually a body — Fastify's
+    // JSON body parser rejects a zero-length body sent with
+    // application/json (FST_ERR_CTP_EMPTY_JSON_BODY -> 400), which is
+    // exactly what accept/cancel/complete send (POST, no payload).
+    headers:
+      init?.body !== undefined
+        ? { 'Content-Type': 'application/json', ...init.headers }
+        : init?.headers,
   });
 
   if (res.status === 204) return undefined as T;
