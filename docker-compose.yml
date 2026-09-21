@@ -1,8 +1,8 @@
 # No reverse proxy or auth — deployment responsibility, not app's.
 services:
   app:
-    image: ghcr.io/<owner>/<app-name>:latest
-    container_name: <app-name>
+    image: ghcr.io/cdcaskey/one-job:latest
+    container_name: one-job
     restart: unless-stopped
 
     environment:

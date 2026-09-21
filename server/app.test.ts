@@ -15,7 +15,7 @@ let dataDir: string;
 let seededNames: string[];
 
 beforeAll(async () => {
-  dataDir = mkdtempSync(path.join(tmpdir(), 'spa-template-test-'));
+  dataDir = mkdtempSync(path.join(tmpdir(), 'one-job-test-'));
   process.env.DATA_DIR = dataDir;
 
   const { runMigrations } = await import('./migrate.js');
