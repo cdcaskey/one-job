@@ -27,9 +27,13 @@ COPY --from=build /app/server/dist ./server/dist
 COPY config-defaults ./config-defaults
 COPY docker-entrypoint.sh /usr/local/bin/
 
+# node:24-alpine ships a built-in "node" user/group already at uid/gid
+# 1000, colliding with a fresh `addgroup -g 1000`/`adduser -u 1000` —
+# rename it instead of creating a new account, so uid/gid 1000 stays
+# the default PUID/PGID target without a collision.
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
-    && addgroup -g 1000 app \
-    && adduser -D -u 1000 -G app app
+    && groupmod -n app node \
+    && usermod -l app -d /home/app -m node
 
 ENV DATA_DIR=/data
 ENV CONFIG_DIR=/config
