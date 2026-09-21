@@ -1,5 +1,14 @@
 # CLAUDE.md
 
+**One Job** removes the decision of what to work on next. Keep a
+backlog of tasks with a priority and a time estimate; set how much
+time is available and the minimum priority that matters right now,
+and the app deals a single random matching task. Accept it and it
+locks in as "the one job" until it's marked done or cancelled — no
+browsing the backlog, no cherry-picking, no second-guessing. Every
+design decision defends that: nothing in this codebase should let a
+user see more than one candidate task at a time or browse a deck.
+
 ## Stack
 
 - Vite + React + TypeScript + Mantine (frontend, `src/`)
@@ -7,6 +16,50 @@
   container serves both — no separate reverse proxy needed by the app
   itself
 - SQLite at `$DATA_DIR/app.db` (default `/data`), mounted volume in prod
+
+## One Job invariants
+
+These hold everywhere in the codebase; a change that breaks one of
+them is a bug, not a design choice to reopen casually.
+
+- **At most one active task.** Enforced in the schema by
+  `tasks_one_active`, a partial unique index on `status = 'active'`
+  (`server/migrations/2026-09-20.1_init.sql`) — not just app-level
+  logic. `acceptTask` in `server/repo/tasks.ts` is race-safe: a
+  conditional `UPDATE … WHERE status = 'pending'` catches the target
+  row already being non-pending, and a caught `SQLITE_CONSTRAINT_UNIQUE`
+  catches the subtler case where the row itself is pending but a
+  _different_ row is already active.
+- **Minutes are the only estimate unit.** `estimate_minutes INTEGER`
+  is the single source of truth in the database and the API.
+  `shared/estimate.ts` is the only module that converts between
+  minutes and a value+unit pair, or formats minutes for display —
+  nowhere else does either conversion by hand.
+- **Priority is a stored integer** (`1 = low, 2 = medium, 3 = high`).
+  `shared/priority.ts` is the only module holding labels, colours and
+  ordering — the label itself is never stored or hardcoded elsewhere.
+- **Timestamps are epoch milliseconds, UTC**, as integers
+  (`created_at`, `updated_at`, `completed_at`) — not SQLite
+  `datetime('now')` text. The client formats and compares them.
+- **All SQL lives in `server/repo/tasks.ts`.** No ORM, no query
+  builder — raw `better-sqlite3` statements, one place. Routes
+  (`server/routes/*.ts`) never touch the database directly.
+- **camelCase at the API boundary, snake_case in the database.**
+  `server/repo/tasks.ts`'s `rowToTask` is the one place that maps
+  between them.
+- **`shared/` stays Node-free.** It's bundled into the client, so no
+  `better-sqlite3`, no `node:*`, nothing under `server/`. Enforced by
+  ESLint's `no-restricted-imports` on `src/**` and `shared/**` — see
+  the ESLint paragraph below — not just by convention.
+- **Drawing is client-side.** The client fetches the filtered
+  candidate pool once (`GET /api/tasks?status=pending&…`) and
+  `shared/draw.ts`'s `pickCandidate` (pure, RNG injected) picks from
+  it. The skip-set is session-only React state — never persisted, no
+  `skipped_at` column. There is no `/draw` endpoint.
+- **No authentication, ever.** Every `/api/*` route is open; access
+  control is the deploying environment's job (forward-auth proxy,
+  tailnet, etc.), not this app's. Don't read identity headers for
+  authorization — there's no per-user data to gate.
 
 ## Commands
 
@@ -46,18 +99,36 @@ migrate`.
 - **Mantine theme** lives in `src/theme.ts` — extend it, don't override
   component styles inline, so apps built from this template stay
   visually consistent without copy-pasting overrides everywhere.
-- **API routes** live under `/api/*` in `server/index.ts`; everything
-  else falls through to the built SPA's `index.html` (client-side
-  routing friendly).
+- **API routes** live under `/api/*` in `server/routes/*.ts`
+  (registered onto the `buildApp` factory in `server/app.ts`);
+  everything else falls through to the built SPA's `index.html`
+  (client-side routing friendly). A single `setErrorHandler` in
+  `app.ts` gives every failure the same `{ error: { message, details } }`
+  shape — routes don't hand-roll their own error responses.
 - **Config**: `$CONFIG_DIR/.env` (default `/config/.env`) is loaded on
   startup via `dotenv`. Real environment variables (e.g.
   docker-compose `environment:`) always take precedence over the file
   — `dotenv` does not overwrite variables already set in `process.env`.
   Default config files ship in `config-defaults/` and are seeded into
   `$CONFIG_DIR` on first container start only; existing files there
-  are never overwritten.
+  are never overwritten. `server/config.ts` is the only module (beyond
+  `index.ts`'s own `CONFIG_DIR`/`PORT`) that reads `process.env` — see
+  the dotenv-load-order note below before adding another one.
 - **Never commit** `./data/` or `./config/` (gitignored) — local
   SQLite file and local config overrides.
+- **`server/index.ts`'s dynamic imports are load-bearing, not
+  cosmetic.** It calls `dotenv.config()` first, then reaches
+  `migrate.ts`/`app.ts`/`db.ts` (and everything they import, including
+  `config.ts`) through `await import(...)` rather than static
+  `import` declarations. Static imports are hoisted above
+  `dotenv.config()` regardless of where they're written in the file,
+  so anything that reads `process.env` at module scope would see the
+  environment _before_ the `.env` file loaded. The only invariant to
+  preserve: `index.ts`'s own _static_ import list must never include a
+  module that reads `process.env` at module scope, directly or
+  transitively — route it through the dynamic imports instead. A
+  regression test (`server/env-loading.test.ts`) spawns the real
+  entrypoint as a child process and fails if this ever breaks.
 
 ## Docker / deploy
 

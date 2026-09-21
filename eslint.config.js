@@ -23,7 +23,7 @@ export default tseslint.config(
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    files: ['*.config.js', 'vitest.setup.mjs'],
+    files: ['*.config.js', 'vitest.setup.mjs', 'scripts/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
