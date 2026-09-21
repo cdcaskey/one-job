@@ -11,7 +11,11 @@ export const createTaskSchema = z.object({
   estimateMinutes: z.number().int().positive().max(100000),
 });
 
-export const updateTaskSchema = createTaskSchema.partial();
+// .strict() so a client-sent `status` (or any other unrecognized
+// field) fails validation instead of being silently stripped — PATCH
+// only ever moves title/notes/priority/estimateMinutes; status
+// changes go through the accept/cancel/complete transition routes.
+export const updateTaskSchema = createTaskSchema.partial().strict();
 
 export const taskSortFieldSchema = z.enum(['created', 'priority', 'estimate']);
 export const sortOrderSchema = z.enum(['asc', 'desc']);
