@@ -1,33 +1,76 @@
-import { useEffect, useState } from 'react';
-import { AppShell, Badge, Group, Text, Title } from '@mantine/core';
+import {
+  ActionIcon,
+  AppShell,
+  Badge,
+  Group,
+  NavLink,
+  Title,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { Route, Routes, NavLink as RouterNavLink } from 'react-router';
+import { useHealth } from './hooks/useHealth.js';
+import { DrawPage } from './features/draw/DrawPage.js';
+import { ListPage } from './features/list/ListPage.js';
 
-type HealthResponse = { status: 'ok'; db: 'ok' | 'error' };
+function ColorSchemeToggle() {
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <ActionIcon
+      variant="default"
+      size="lg"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      onClick={() => setColorScheme(isDark ? 'light' : 'dark')}
+    >
+      {isDark ? '☀️' : '🌙'}
+    </ActionIcon>
+  );
+}
+
+function HealthBadge() {
+  const { data: health } = useHealth();
+  return (
+    <Badge color={health?.status === 'ok' ? 'green' : 'gray'}>
+      {health ? `api ${health.status} / db ${health.db}` : 'connecting…'}
+    </Badge>
+  );
+}
 
 export function App() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((r) => r.json())
-      .then(setHealth)
-      .catch(() => setHealth(null));
-  }, []);
-
   return (
     <AppShell header={{ height: 56 }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
-          <Title order={4}>One Job</Title>
-          <Badge color={health?.status === 'ok' ? 'green' : 'gray'}>
-            {health ? `api ${health.status} / db ${health.db}` : 'connecting…'}
-          </Badge>
+          <Group gap="xs">
+            <Title order={4}>One Job</Title>
+            <NavLink
+              component={RouterNavLink}
+              to="/"
+              label="Job"
+              variant="subtle"
+              style={{ borderRadius: 'var(--mantine-radius-md)', width: 'auto' }}
+              end
+            />
+            <NavLink
+              component={RouterNavLink}
+              to="/tasks"
+              label="Tasks"
+              variant="subtle"
+              style={{ borderRadius: 'var(--mantine-radius-md)', width: 'auto' }}
+            />
+          </Group>
+          <Group gap="sm">
+            <HealthBadge />
+            <ColorSchemeToggle />
+          </Group>
         </Group>
       </AppShell.Header>
       <AppShell.Main>
-        <Text>
-          Replace this with the actual app. This shell just proves the API, database and build
-          pipeline are wired up.
-        </Text>
+        <Routes>
+          <Route path="/" element={<DrawPage />} />
+          <Route path="/tasks" element={<ListPage />} />
+        </Routes>
       </AppShell.Main>
     </AppShell>
   );
