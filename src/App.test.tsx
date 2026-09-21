@@ -17,6 +17,8 @@ describe('App', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
         json: () => Promise.resolve({ status, db: dbStatus }),
       }),
     );
@@ -26,5 +28,20 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText(`api ${status} / db ${dbStatus}`)).toBeInTheDocument();
     });
+  });
+
+  it('renders the job route by default', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ status: 'ok', db: 'ok' }),
+      }),
+    );
+
+    renderWithProviders(<App />);
+
+    expect(await screen.findByText(/job card goes here/i)).toBeInTheDocument();
   });
 });
