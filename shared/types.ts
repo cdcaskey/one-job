@@ -35,6 +35,7 @@ export interface TaskQuery {
   status?: TaskStatus;
   minPriority?: Priority;
   maxMinutes?: number;
+  search?: string;
   sort?: TaskSortField;
   order?: SortOrder;
 }
