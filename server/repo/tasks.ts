@@ -50,6 +50,10 @@ export function listTasks(query: TaskQuery): Task[] {
     clauses.push('estimate_minutes <= ?');
     params.push(query.maxMinutes);
   }
+  if (query.search !== undefined) {
+    clauses.push("title LIKE ? ESCAPE '\\'");
+    params.push(`%${query.search.replace(/[\\%_]/g, '\\$&')}%`);
+  }
 
   const where = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
   const column = SORT_COLUMNS[query.sort ?? 'created'];

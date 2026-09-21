@@ -24,6 +24,7 @@ export const taskQuerySchema = z.object({
   status: taskStatusSchema.optional(),
   minPriority: z.coerce.number().pipe(prioritySchema).optional(),
   maxMinutes: z.coerce.number().int().positive().optional(),
+  search: z.string().trim().min(1).max(200).optional(),
   sort: taskSortFieldSchema.optional(),
   order: sortOrderSchema.optional(),
 });

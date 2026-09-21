@@ -71,6 +71,18 @@ describe('listTasks', () => {
     expect(byStatus.every((t) => t.status === 'pending')).toBe(true);
   });
 
+  it('filters by a title substring, case-insensitively, escaping LIKE wildcards', () => {
+    const unique = faker.string.alphanumeric(12);
+    const match = repo.createTask(makeInput({ title: `Fix the ${unique} bug` }));
+    const other = repo.createTask(makeInput({ title: faker.commerce.productName() }));
+
+    const results = repo.listTasks({ search: unique.toUpperCase() });
+    expect(results.some((t) => t.id === match.id)).toBe(true);
+    expect(results.some((t) => t.id === other.id)).toBe(false);
+
+    expect(repo.listTasks({ search: '%_' }).length).toBe(0);
+  });
+
   it('sorts by estimate ascending', () => {
     const a = repo.createTask(makeInput({ estimateMinutes: 5 }));
     const b = repo.createTask(makeInput({ estimateMinutes: 999 }));

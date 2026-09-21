@@ -37,4 +37,8 @@ if (typeof window !== 'undefined') {
 
   Object.defineProperty(window, 'scrollTo', { value: () => {}, writable: true });
   Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? (() => {});
+
+  // Textarea autosize listens for font-loading via document.fonts
+  // (the FontFaceSet API), which jsdom doesn't implement.
+  document.fonts = document.fonts ?? { addEventListener: () => {}, removeEventListener: () => {} };
 }

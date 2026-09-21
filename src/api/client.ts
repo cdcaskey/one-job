@@ -5,6 +5,7 @@ export function toQueryString(query: TaskQuery): string {
   if (query.status !== undefined) params.set('status', query.status);
   if (query.minPriority !== undefined) params.set('minPriority', String(query.minPriority));
   if (query.maxMinutes !== undefined) params.set('maxMinutes', String(query.maxMinutes));
+  if (query.search !== undefined) params.set('search', query.search);
   if (query.sort !== undefined) params.set('sort', query.sort);
   if (query.order !== undefined) params.set('order', query.order);
   const qs = params.toString();
