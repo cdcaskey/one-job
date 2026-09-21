@@ -1,12 +1,15 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import Database from 'better-sqlite3';
+import { DATA_DIR } from './config.js';
 
-const DATA_DIR = process.env.DATA_DIR ?? '/data';
+// DATA_DIR=':memory:' is a test-only escape hatch for a real, isolated
+// SQLite instance with no file on disk — never set this in deployment.
+const isMemory = DATA_DIR === ':memory:';
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!isMemory) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-export const dbPath = path.join(DATA_DIR, 'app.db');
+export const dbPath = isMemory ? ':memory:' : path.join(DATA_DIR, 'app.db');
 
 export const db = new Database(dbPath);
 
