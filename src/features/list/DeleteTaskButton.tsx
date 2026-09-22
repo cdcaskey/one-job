@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActionIcon, Button, Group, Popover, Stack, Text } from '@mantine/core';
+import { X } from '@phosphor-icons/react';
 import { notifications } from '@mantine/notifications';
 import type { Task } from '../../../shared/types.js';
 import { useDeleteTask } from '../../hooks/useTasks.js';
@@ -20,7 +21,7 @@ export function DeleteTaskButton({ task }: { task: Task }) {
             setOpened((o) => !o);
           }}
         >
-          ✕
+          <X size={16} />
         </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
