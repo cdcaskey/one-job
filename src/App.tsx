@@ -7,6 +7,7 @@ import {
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
+import { Moon, Sun } from '@phosphor-icons/react';
 import { Route, Routes, NavLink as RouterNavLink } from 'react-router';
 import { DrawPage } from './features/draw/DrawPage.js';
 import { ListPage } from './features/list/ListPage.js';
@@ -23,7 +24,7 @@ function ColorSchemeToggle() {
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={() => setColorScheme(isDark ? 'light' : 'dark')}
     >
-      {isDark ? '☀️' : '🌙'}
+      {isDark ? <Sun size={18} /> : <Moon size={18} />}
     </ActionIcon>
   );
 }
